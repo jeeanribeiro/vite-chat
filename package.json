@@ -13,7 +13,8 @@
     "quasar": "^2.10.2",
     "socket.io": "^4.5.3",
     "socket.io-client": "^4.5.3",
-    "vue": "^3.2.41"
+    "vue": "^3.2.41",
+    "vue-router": "^4.1.6"
   },
   "devDependencies": {
     "@quasar/vite-plugin": "^1.2.3",
