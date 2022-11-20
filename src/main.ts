@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
-import { Quasar } from 'quasar'
+import { Quasar, Notify } from 'quasar'
 import './style.css'
 import '@quasar/extras/material-icons/material-icons.css'
 import 'quasar/src/css/index.sass'
@@ -20,5 +20,9 @@ const router = createRouter({
 
 createApp(App)
   .use(router)
-  .use(Quasar)
+  .use(Quasar, {
+    plugins: {
+      Notify
+    },
+  })
   .mount('#app')
