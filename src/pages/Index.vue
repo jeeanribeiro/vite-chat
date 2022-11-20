@@ -30,10 +30,12 @@
 <script lang="ts">
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default {
   setup () {
     const $q = useQuasar()
+    const $router = useRouter()
 
     const name = ref(null)
     const accept = ref(false)
@@ -58,6 +60,7 @@ export default {
             icon: 'cloud_done',
             message: 'Submitted'
           })
+          $router.push('/chat')          
         }
       },
 
