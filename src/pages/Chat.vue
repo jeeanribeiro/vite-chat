@@ -3,7 +3,7 @@
     <div class="bg-white q-pa-md row justify-between items- w-160 h-4/5 flex-col">
         <div>
             <q-chat-message
-                label="Sunday, 19th"
+                :label="new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(new Date())"
             />
             <div>
                 <q-chat-message
@@ -21,14 +21,14 @@
                 />
             </div>
         </div>
-        <q-input filled bottom-slots v-model="text" label="message" :dense="dense">
+        <q-input filled bottom-slots v-model="message" label="message" :dense="dense">
             <template v-slot:before>
             </template>
             <template v-slot:append>
-            <q-icon v-if="text !== ''" name="close" @click="text = ''" class="cursor-pointer" />
+            <q-icon v-if="message !== ''" name="close" @click="message = ''" class="cursor-pointer" />
             </template>
             <template v-slot:after>
-            <q-btn round dense flat icon="send" />
+            <q-btn round dense flat icon="send" @click="onClick" />
             </template>
         </q-input>
     </div>
@@ -36,13 +36,27 @@
 
 <script lang="ts">
 import { ref } from 'vue'
+import { io } from "socket.io-client"
 
 export default {
   setup () {
+    const message = ref('')
+    const socket = io('http://' + window.location.host)
+
+    socket.on("connect", () => {
+      console.log("connected")
+    })
+
     return {
-      text: ref(''),
+      label: ref(null),
+      message,
       ph: ref(''),
-      dense: ref(false)
+      dense: ref(false),
+
+      onClick () {
+        socket.emit('message', message.value)
+        message.value = ''
+      }
     }
   }
 }
