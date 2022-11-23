@@ -8,10 +8,11 @@ const socketio = () => ({
   configureServer(server) {
     const io = new Server(server.httpServer)
     io.on('connection', (socket) => {
-      socket.on('message', (message) => {
-          console.log('Message received: ', message)
-      });
-  });
+      socket.on('message', (payload) => {
+          const { message, name } = payload
+          io.emit('message', { message, name, date: new Date() })
+      })
+    })
   }
 })
 
@@ -26,4 +27,7 @@ export default defineConfig({
     }),
     socketio(),
   ],
+  server: {
+    host: true,
+  },
 })

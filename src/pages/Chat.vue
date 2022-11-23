@@ -1,27 +1,21 @@
 <template>
     <h1 class="pb-8">chat</h1>
     <div class="bg-white q-pa-md row justify-between items- w-160 h-4/5 flex-col">
-        <div>
+        <div class="flex-1 overflow-auto">
             <q-chat-message
                 :label="new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(new Date())"
             />
-            <div>
+            <div v-for="message in messages">
                 <q-chat-message
-                    name="me"
+                    :name="message.name === name ? 'me' : message.name"
                     avatar="https://static.vecteezy.com/system/resources/thumbnails/005/544/770/small/profile-icon-design-free-vector.jpg"
-                    :text="['hey, how are you?']"
-                    sent
-                    stamp="7 minutes ago"
-                />
-                <q-chat-message
-                    name="person"
-                    avatar="https://static.vecteezy.com/system/resources/thumbnails/005/544/770/small/profile-icon-design-free-vector.jpg"
-                    :text="['doing fine, how r you?']"
-                    stamp="4 minutes ago"
+                    :text="[message.message]"
+                    :sent="message.name === name ? true : false"
+                    :stamp="message.date.toLocaleString()"
                 />
             </div>
         </div>
-        <q-input filled bottom-slots v-model="message" label="message" :dense="dense">
+        <q-input filled bottom-slots v-model="message" label="message" :dense="false" @keydown="onKeyDown">
             <template v-slot:before>
             </template>
             <template v-slot:append>
@@ -35,28 +29,48 @@
 </template>
 
 <script lang="ts">
-import { ref } from 'vue'
+import { Ref, ref } from 'vue'
 import { io } from "socket.io-client"
+import { useStore } from 'vuex'
+
+const messages: Ref<{ name: string, message: string, date: Date }[]> = ref([])
+const name = ref('')
 
 export default {
   setup () {
-    const message = ref('')
+    const $store = useStore()
     const socket = io('http://' + window.location.host)
+    
+    const message = ref('')
+    name.value = $store.state.name,
 
-    socket.on("connect", () => {
-      console.log("connected")
+    socket.on("message", (data) => {
+      messages.value = [...messages.value, data]
     })
 
+    function sendMessageAndReset() {
+      socket.emit("message", { name: name.value, message: message.value })
+      message.value = ''
+    }
+
     return {
-      label: ref(null),
       message,
-      ph: ref(''),
-      dense: ref(false),
 
       onClick () {
-        socket.emit('message', message.value)
-        message.value = ''
+        sendMessageAndReset()
+      },
+
+      onKeyDown (event: KeyboardEvent) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          sendMessageAndReset()
+        }
       }
+    }
+  },
+  data() {
+    return {
+      name,
+      messages,
     }
   }
 }

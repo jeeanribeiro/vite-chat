@@ -31,11 +31,13 @@
 import { useQuasar } from 'quasar'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 
 export default {
   setup () {
     const $q = useQuasar()
     const $router = useRouter()
+    const $store = useStore()
 
     const name = ref(null)
     const accept = ref(false)
@@ -60,7 +62,8 @@ export default {
             icon: 'cloud_done',
             message: 'Submitted'
           })
-          $router.push('/chat')          
+          $store.commit('setName', name.value)
+          $router.push('/chat')
         }
       },
 
