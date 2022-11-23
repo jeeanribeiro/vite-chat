@@ -24,7 +24,10 @@
         </div>
         <div class="flex">
           <q-input filled bottom-slots v-model="message" label="message" :dense="false" @keydown="onKeyDown" class="flex-1">
-            <template v-slot:before>
+            <template v-slot:prepend>
+              <div class="w-10 rounded-2xl">
+                <EmojiPicker :native="true" @select="onSelectEmoji" picker-type="input" />
+              </div>
             </template>
             <template v-slot:append>
               <q-icon v-if="message !== ''" name="close" @click="message = ''" class="cursor-pointer" />
@@ -43,6 +46,8 @@
 import { Ref, ref } from 'vue'
 import { io } from "socket.io-client"
 import { useStore } from 'vuex'
+import EmojiPicker from 'vue3-emoji-picker'
+import 'vue3-emoji-picker/css'
 
 const messages: Ref<{ name: string, message?: string, date: Date, file?: File, fileArrayBuffer?: ArrayBuffer }[]> = ref([])
 const name = ref('')
@@ -102,7 +107,10 @@ export default {
         const fileName = message.file.name
         link.download = fileName
         link.click()
-      }
+      },
+      onSelectEmoji (emoji: any) {
+        message.value += emoji.i
+      },
     }
   },
   data() {
@@ -117,11 +125,20 @@ export default {
       (this.$refs.qfile as any)?.pickFiles()
     },
   },
+  components: {
+    EmojiPicker,
+  }
 }
 </script>
 
 <style>
     .w-160 {
         width: 40rem;
+    }
+
+    .v3-input-emoji-picker .v3-input-picker-root input.v3-emoji-picker-input {
+      background: none;
+      border: none;
+      color: transparent;
     }
 </style>
