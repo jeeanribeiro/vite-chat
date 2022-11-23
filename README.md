@@ -5,24 +5,25 @@ Chat app made with Vite, Vue, Quasar, Tailwind and Socket.IO
 Pre-requisites:
 ```
 Node version 16.17.x and higher
+Yarn
 ```
 
 To install dependencies:
 ```shell
-npm install
+yarn install
 ```
 
 To run as development server:
 ```shell
-npm run dev
+yarn dev
 ```
 
 To build for prodution:
 ```shell
-npm run dev
+yarn build
 ```
 
 To start a local web server that serves the built solution:
 ```shell
-npm run preview
+yarn preview
 ```
