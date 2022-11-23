@@ -6,25 +6,36 @@
                 :label="new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(new Date())"
             />
             <div v-for="message in messages">
-                <q-chat-message
-                    :name="message.name === name ? 'me' : message.name"
-                    avatar="https://static.vecteezy.com/system/resources/thumbnails/005/544/770/small/profile-icon-design-free-vector.jpg"
-                    :text="[message.message]"
-                    :sent="message.name === name ? true : false"
-                    :stamp="message.date.toLocaleString()"
-                />
+              <q-chat-message
+                  :name="message.name === name ? 'me' : message.name"
+                  avatar="https://static.vecteezy.com/system/resources/thumbnails/005/544/770/small/profile-icon-design-free-vector.jpg"
+                  :sent="message.name === name ? true : false"
+                  :stamp="message.date.toLocaleString()"
+              >
+                <div v-if="message.fileArrayBuffer" :class="`flex items-center ${message.name === name ? '' : 'flex-row-reverse'}`">
+                  <q-icon name="download_file" size="2rem" @click="onDownloadClick(message)" class="cursor-pointer block" />
+                  <span class="flex-1">{{ message.file?.name }}</span>
+                </div>
+                <span v-if="message.message">
+                  {{ message.message }}
+                </span>
+              </q-chat-message>
             </div>
         </div>
-        <q-input filled bottom-slots v-model="message" label="message" :dense="false" @keydown="onKeyDown">
+        <div class="flex">
+          <q-input filled bottom-slots v-model="message" label="message" :dense="false" @keydown="onKeyDown" class="flex-1">
             <template v-slot:before>
             </template>
             <template v-slot:append>
-            <q-icon v-if="message !== ''" name="close" @click="message = ''" class="cursor-pointer" />
+              <q-icon v-if="message !== ''" name="close" @click="message = ''" class="cursor-pointer" />
             </template>
             <template v-slot:after>
-            <q-btn round dense flat icon="send" @click="onClick" />
+              <q-btn round dense flat icon="send" @click="onSendClick" />
+              <q-btn round dense flat icon="attach_file" @click="onAttachClick" />
             </template>
-        </q-input>
+          </q-input>
+          <q-file ref="qfile" borderless v-model="file" class="hidden" @update:model-value="onUpload" />
+        </div>
     </div>
 </template>
 
@@ -33,7 +44,7 @@ import { Ref, ref } from 'vue'
 import { io } from "socket.io-client"
 import { useStore } from 'vuex'
 
-const messages: Ref<{ name: string, message: string, date: Date }[]> = ref([])
+const messages: Ref<{ name: string, message?: string, date: Date, file?: File, fileArrayBuffer?: ArrayBuffer }[]> = ref([])
 const name = ref('')
 
 export default {
@@ -48,6 +59,10 @@ export default {
       messages.value = [...messages.value, data]
     })
 
+    socket.on("file", (data) => {
+      messages.value = [...messages.value, data]
+    })
+
     function sendMessageAndReset() {
       socket.emit("message", { name: name.value, message: message.value })
       message.value = ''
@@ -55,15 +70,38 @@ export default {
 
     return {
       message,
-
-      onClick () {
+      onSendClick () {
         sendMessageAndReset()
       },
-
       onKeyDown (event: KeyboardEvent) {
         if (event.key === 'Enter' && !event.shiftKey) {
           sendMessageAndReset()
         }
+      },
+      onFileChange(event: any) {
+        console.log(event)
+      },
+      onUpload (file: File) {
+        const reader = new FileReader()
+        const _file = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          lastModified: file.lastModified,
+        }
+        reader.addEventListener('load', () => {
+          socket.emit('file', { name: name.value, file: _file, fileArrayBuffer: reader.result })
+        })
+        reader.readAsArrayBuffer(file)
+      },
+      onDownloadClick (message: any) {
+        const blob = new Blob([message.fileArrayBuffer], { type: message.file.type })
+        const objectURL = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = objectURL
+        const fileName = message.file.name
+        link.download = fileName
+        link.click()
       }
     }
   },
@@ -71,8 +109,14 @@ export default {
     return {
       name,
       messages,
+      file: ref(null),
     }
-  }
+  },
+  methods: {
+    onAttachClick () {
+      (this.$refs.qfile as any)?.pickFiles()
+    },
+  },
 }
 </script>
 

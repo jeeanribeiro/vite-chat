@@ -12,6 +12,10 @@ const socketio = () => ({
           const { message, name } = payload
           io.emit('message', { message, name, date: new Date() })
       })
+      socket.on('file', (payload) => {
+        const { name, file, fileArrayBuffer } = payload
+        io.emit('file', { name, date: new Date(), file, fileArrayBuffer })
+      })
     })
   }
 })
